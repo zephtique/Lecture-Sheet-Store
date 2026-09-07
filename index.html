@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture Binder — HSC 2nd Paper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;600;700&family=Noto+Sans+Bengali:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #F1EEE4;
+    --surface: #FBFAF6;
+    --line: #DBD5C3;
+    --ink: #1E2420;
+    --muted: #736F5F;
+    --physics: #1F6F78;
+    --physics-dark: #154F56;
+    --physics-tint: #E4EFEE;
+    --math: #B4791F;
+    --math-dark: #8A5B14;
+    --math-tint: #F5EBD8;
+    --accent: var(--math);
+    --accent-dark: var(--math-dark);
+    --accent-tint: var(--math-tint);
+  }
+
+  *{ box-sizing: border-box; }
+  html{ -webkit-text-size-adjust: 100%; }
+  body{
+    margin:0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", "Noto Sans Bengali", sans-serif;
+    line-height: 1.5;
+    transition: background .4s ease;
+  }
+  .bn{ font-family: "Noto Serif Bengali", "IBM Plex Sans", serif; }
+  .mono{ font-family: "IBM Plex Mono", monospace; letter-spacing: .02em; }
+
+  a{ color: inherit; }
+  button{ font: inherit; color: inherit; }
+
+  :focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .wrap{ max-width: 880px; margin: 0 auto; padding: 0 20px 80px; }
+
+  header.site{
+    padding: 56px 0 40px;
+    background-image:
+      linear-gradient(var(--paper), var(--paper)),
+      repeating-linear-gradient(0deg, color-mix(in srgb, var(--accent) 10%, transparent) 0 1px, transparent 1px 28px),
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--accent) 10%, transparent) 0 1px, transparent 1px 28px);
+    transition: background .4s ease;
+  }
+  header.site .wrap{ padding-bottom: 0; }
+  .eyebrow{ font-size: .8rem; color: var(--muted); margin: 0 0 6px; }
+  h1.site-title{ margin: 0; font-size: clamp(2rem, 5vw, 2.6rem); font-weight: 700; letter-spacing: -.01em; }
+  p.site-sub{ margin: 10px 0 0; max-width: 46ch; color: var(--muted); font-size: 1.02rem; }
+
+  nav.subjects{ display: flex; gap: 10px; margin-top: 34px; }
+  .subject-tab{
+    flex: 1 1 0; cursor: pointer; background: var(--surface);
+    border: 1px solid var(--line); border-bottom: none;
+    border-radius: 12px 12px 0 0; padding: 16px 18px 14px;
+    text-align: left; position: relative; top: 1px;
+    transition: transform .15s ease, background .2s ease;
+  }
+  .subject-tab .name-bn{ display:block; font-size: 1.15rem; font-weight: 600; }
+  .subject-tab .name-en{ display:block; font-size: .78rem; color: var(--muted); margin-top: 2px; }
+  .subject-tab .count{ display:block; margin-top: 10px; font-size: .74rem; color: var(--muted); }
+  .subject-tab[data-subject="physics"] .count-dot{ background: var(--physics); }
+  .subject-tab[data-subject="math"] .count-dot{ background: var(--math); }
+  .count-dot{ display:inline-block; width:6px; height:6px; border-radius: 50%; margin-right: 6px; }
+  .subject-tab[aria-selected="true"]{
+    background: var(--surface); border-color: var(--accent);
+    box-shadow: 0 -2px 0 var(--accent) inset; transform: translateY(-2px);
+  }
+  .subject-tab[aria-selected="true"] .name-bn{ color: var(--accent-dark); }
+  .subject-tab:not([aria-selected="true"]):hover{ background: var(--paper); }
+
+  main.panel{ background: var(--surface); border: 1px solid var(--line); border-radius: 0 10px 10px 10px; padding: 8px; }
+
+  details.chapter{ border-bottom: 1px solid var(--line); }
+  details.chapter:last-child{ border-bottom: none; }
+
+  summary.chapter-head{
+    list-style: none; cursor: pointer; display: flex; align-items: center;
+    gap: 16px; padding: 16px 12px; border-radius: 8px;
+  }
+  summary.chapter-head::-webkit-details-marker{ display:none; }
+  summary.chapter-head:hover{ background: var(--paper); }
+
+  .chapter-code{
+    flex: 0 0 auto; font-size: .72rem; color: var(--accent-dark);
+    background: var(--accent-tint); padding: 4px 8px; border-radius: 6px;
+    min-width: 52px; text-align: center;
+  }
+  .chapter-titles{ flex: 1 1 auto; min-width: 0; }
+  .chapter-name-bn{ font-size: 1.05rem; font-weight: 600; display: block; }
+  .chapter-name-en{ font-size: .8rem; color: var(--muted); display: block; margin-top: 1px; }
+  .chapter-meta{ flex: 0 0 auto; font-size: .76rem; color: var(--muted); text-align: right; white-space: nowrap; }
+  .chapter-chevron{ flex: 0 0 auto; width: 20px; height: 20px; display: grid; place-items: center; transition: transform .2s ease; color: var(--muted); }
+  details[open] .chapter-chevron{ transform: rotate(90deg); }
+
+  .chapter-body{ padding: 0 12px 20px 80px; }
+
+  .sheet-list{ display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .sheet-empty{ font-size: .88rem; color: var(--muted); padding: 14px 0 4px; }
+  .sheet-row{
+    display: flex; align-items: center; gap: 10px; background: var(--paper);
+    border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;
+    text-decoration: none;
+  }
+  .sheet-icon{
+    flex: 0 0 auto; width: 30px; height: 30px; border-radius: 6px;
+    background: var(--accent-tint); color: var(--accent-dark);
+    display: grid; place-items: center; font-size: .68rem; font-weight: 600;
+  }
+  .sheet-info{ flex: 1 1 auto; min-width: 0; }
+  .sheet-name{ font-size: .88rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sheet-sub{ font-size: .74rem; color: var(--muted); }
+  .sheet-row:hover{ border-color: var(--accent); }
+  .sheet-row:hover .sheet-name{ color: var(--accent-dark); }
+
+  .path-box{
+    border: 1.5px dashed var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: .82rem;
+    color: var(--muted);
+  }
+  .path-box .label{ margin-bottom: 6px; }
+  .path-row{
+    display: flex; align-items: center; gap: 8px;
+    background: var(--paper); border: 1px solid var(--line);
+    border-radius: 6px; padding: 6px 10px; margin-bottom: 10px;
+  }
+  .path-row code{ flex: 1 1 auto; font-size: .8rem; overflow-x: auto; white-space: nowrap; }
+  .path-row button{
+    flex: 0 0 auto; background: none; border: 1px solid var(--line);
+    border-radius: 5px; padding: 3px 9px; font-size: .72rem; cursor: pointer;
+  }
+  .path-row button:hover{ border-color: var(--accent); color: var(--accent-dark); }
+  .upload-link{
+    display: inline-block; background: var(--accent); color: #fff;
+    border: none; padding: 8px 16px; border-radius: 7px;
+    font-size: .82rem; font-weight: 500; text-decoration: none;
+  }
+  .upload-link:hover{ background: var(--accent-dark); }
+
+  footer.note{ margin-top: 28px; font-size: .78rem; color: var(--muted); max-width: 62ch; }
+
+  .setup{
+    max-width: 640px; margin: 60px auto; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 12px; padding: 28px 30px;
+  }
+  .setup h2{ margin-top: 0; font-size: 1.3rem; }
+  .setup ol{ padding-left: 20px; }
+  .setup li{ margin-bottom: 10px; font-size: .92rem; }
+  .setup code{
+    background: var(--paper); border: 1px solid var(--line); border-radius: 4px;
+    padding: 1px 6px; font-family: "IBM Plex Mono", monospace; font-size: .82rem;
+  }
+
+  @media (max-width: 560px){
+    .chapter-body{ padding-left: 12px; }
+    .chapter-meta{ display: none; }
+    nav.subjects{ gap: 6px; }
+    .subject-tab{ padding: 12px 12px 10px; }
+  }
+</style>
+</head>
+<body class="subject-math">
+
+<!-- ======================================================
+     GITHUB CONFIG — fill these three in, then this notice
+     disappears and the real app loads.
+     ====================================================== -->
+<script>
+  window.__GH_OWNER__  = "YOUR_GITHUB_USERNAME";
+  window.__GH_REPO__   = "YOUR_REPO_NAME";
+  window.__GH_BRANCH__ = "main";
+</script>
+
+<div id="setup-screen"></div>
+
+<div id="app" style="display:none">
+  <header class="site">
+    <div class="wrap">
+      <p class="eyebrow mono">HSC · BANGLADESH · 2ND PAPER</p>
+      <h1 class="site-title">Lecture Binder</h1>
+      <p class="site-sub bn">উচ্চতর গণিত ও পদার্থবিজ্ঞান (২য় পত্র) — অধ্যায় অনুযায়ী সাজানো লেকচার শীট</p>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <nav class="subjects" role="tablist" aria-label="Subjects">
+      <button class="subject-tab" data-subject="math" role="tab" aria-selected="true">
+        <span class="name-bn bn">উচ্চতর গণিত</span>
+        <span class="name-en">Higher Math · 2nd Paper</span>
+        <span class="count"><span class="count-dot"></span><span data-role="count">9 chapters</span></span>
+      </button>
+      <button class="subject-tab" data-subject="physics" role="tab" aria-selected="false">
+        <span class="name-bn bn">পদার্থবিজ্ঞান</span>
+        <span class="name-en">Physics · 2nd Paper</span>
+        <span class="count"><span class="count-dot"></span><span data-role="count">10 chapters</span></span>
+      </button>
+    </nav>
+
+    <main class="panel" id="panel" role="tabpanel"></main>
+
+    <footer class="note">
+      Sheets are read straight from your GitHub repo, so anything you push shows up here for anyone on any device — no database, no upload button on this page. Chapter names follow the standard NCTB syllabus — rename any that don't match your book's edition.
+    </footer>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const OWNER  = window.__GH_OWNER__;
+  const REPO   = window.__GH_REPO__;
+  const BRANCH = window.__GH_BRANCH__ || "main";
+  const isConfigured = OWNER && !OWNER.includes("YOUR_GITHUB_USERNAME")
+    && REPO && !REPO.includes("YOUR_REPO_NAME");
+
+  if (!isConfigured) {
+    document.getElementById("setup-screen").innerHTML = `
+      <div class="setup">
+        <p class="eyebrow mono" style="margin-bottom:4px">SETUP NEEDED</p>
+        <h2>Point this page at your GitHub repo</h2>
+        <p>This page reads PDFs directly out of a GitHub repo. It just needs to know which one.</p>
+        <ol>
+          <li>Create a public GitHub repo (or use an existing one) and put this <code>index.html</code> at its root.</li>
+          <li>Inside it, create folders following the pattern <code>pdfs/math/01/</code>, <code>pdfs/math/02/</code> … and <code>pdfs/physics/01/</code>, <code>pdfs/physics/02/</code> … — one two-digit folder per chapter, in syllabus order. Each chapter's exact folder path is shown on this page once it's configured, so you don't have to work it out by hand.</li>
+          <li>Drop PDFs straight into the matching folder — either with <code>git push</code>, or by using GitHub's own "Upload files" button in the browser (this page links straight to it per chapter).</li>
+          <li>Near the top of this HTML file, replace <code>YOUR_GITHUB_USERNAME</code> and <code>YOUR_REPO_NAME</code> with your actual GitHub username and repo name.</li>
+          <li>Save and reload — the binder loads automatically, and every push updates it within a few seconds.</li>
+        </ol>
+      </div>`;
+    return;
+  }
+
+  document.getElementById("app").style.display = "";
+
+  const SUBJECTS = {
+    math: {
+      label: "উচ্চতর গণিত", labelEn: "Higher Math", prefix: "HM", folder: "math",
+      chapters: [
+        ["বাস্তব সংখ্যা ও অসমতা", "Real Numbers & Inequalities"],
+        ["যোগাশ্রয়ী প্রোগ্রাম", "Linear Programming"],
+        ["জটিল সংখ্যা", "Complex Numbers"],
+        ["বহুপদী ও বহুপদী সমীকরণ", "Polynomials & Polynomial Equations"],
+        ["দ্বিপদী বিস্তৃতি", "Binomial Expansion"],
+        ["ত্রিকোণমিতিক ফাংশন", "Trigonometric Functions"],
+        ["বিপরীত ত্রিকোণমিতিক ফাংশন ও ত্রিকোণমিতিক সমীকরণ", "Inverse Trig Functions & Trig Equations"],
+        ["স্থিতিবিদ্যা", "Statics"],
+        ["সমতলে বস্তুকণার গতি", "Motion of Particles in a Plane"]
+      ]
+    },
+    physics: {
+      label: "পদার্থবিজ্ঞান", labelEn: "Physics", prefix: "PH", folder: "physics",
+      chapters: [
+        ["তাপগতিবিদ্যা", "Thermodynamics"],
+        ["স্থির তড়িৎ", "Electrostatics"],
+        ["চল তড়িৎ", "Current Electricity"],
+        ["তড়িৎ প্রবাহের চৌম্বক ক্রিয়া ও চুম্বকত্ব", "Magnetic Effect of Current & Magnetism"],
+        ["তড়িৎ চুম্বকীয় আবেশ ও পরিবর্তী প্রবাহ", "Electromagnetic Induction & Alternating Current"],
+        ["জ্যামিতিক আলোকবিজ্ঞান", "Geometrical Optics"],
+        ["ভৌত আলোকবিজ্ঞান", "Physical Optics"],
+        ["আধুনিক পদার্থবিজ্ঞানের সূচনা", "Introduction to Modern Physics"],
+        ["পরমাণুর মডেল ও নিউক্লিয়ার পদার্থবিজ্ঞান", "Atomic Model & Nuclear Physics"],
+        ["সেমিকন্ডাক্টর ও ইলেকট্রনিক্স", "Semiconductor & Electronics"]
+      ]
+    }
+  };
+
+  let activeSubject = "math";
+  let counts = {}; // "subject:chapterIndex" -> n, filled in lazily as folders are checked
+
+  function folderPath(subject, idx) {
+    const num = String(idx + 1).padStart(2, "0");
+    return `pdfs/${SUBJECTS[subject].folder}/${num}`;
+  }
+
+  async function fetchFolder(path) {
+    const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}?ref=${encodeURIComponent(BRANCH)}`;
+    const res = await fetch(url, { headers: { "Accept": "application/vnd.github+json" } });
+    if (res.status === 404) return []; // folder not created yet — treat as empty
+    if (!res.ok) throw new Error("GitHub API error: " + res.status);
+    const data = await res.json();
+    if (!Array.isArray(data)) return [];
+    return data
+      .filter(item => item.type === "file" && item.name.toLowerCase().endsWith(".pdf"))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  function fmtSize(bytes) {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  }
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function updateTabCounts() {
+    document.querySelectorAll(".subject-tab").forEach(tab => {
+      const subj = tab.dataset.subject;
+      const total = SUBJECTS[subj].chapters.length;
+      let sheetTotal = 0, known = false;
+      Object.keys(counts).forEach(k => {
+        if (k.startsWith(subj + ":")) { sheetTotal += counts[k]; known = true; }
+      });
+      const label = known && sheetTotal > 0
+        ? total + " chapters · " + sheetTotal + " sheet" + (sheetTotal === 1 ? "" : "s")
+        : total + " chapters";
+      tab.querySelector('[data-role="count"]').textContent = label;
+    });
+  }
+
+  function renderPanel() {
+    document.body.className = "subject-" + activeSubject;
+    document.documentElement.style.setProperty("--accent", "var(--" + activeSubject + ")");
+    document.documentElement.style.setProperty("--accent-dark", "var(--" + activeSubject + "-dark)");
+    document.documentElement.style.setProperty("--accent-tint", "var(--" + activeSubject + "-tint)");
+
+    const subj = SUBJECTS[activeSubject];
+    const panel = document.getElementById("panel");
+    panel.innerHTML = "";
+
+    subj.chapters.forEach((ch, idx) => {
+      const [bn, en] = ch;
+      const code = subj.prefix + "-" + String(idx + 1).padStart(2, "0");
+
+      const details = document.createElement("details");
+      details.className = "chapter";
+      details.dataset.subject = activeSubject;
+      details.dataset.chapter = String(idx);
+
+      const summary = document.createElement("summary");
+      summary.className = "chapter-head";
+      summary.innerHTML = `
+        <span class="chapter-code mono">${code}</span>
+        <span class="chapter-titles">
+          <span class="chapter-name-bn bn">${bn}</span>
+          <span class="chapter-name-en">${en}</span>
+        </span>
+        <span class="chapter-meta mono" data-role="meta">···</span>
+        <span class="chapter-chevron">›</span>
+      `;
+      details.appendChild(summary);
+
+      const body = document.createElement("div");
+      body.className = "chapter-body";
+      details.appendChild(body);
+
+      let loaded = false;
+      details.addEventListener("toggle", () => {
+        if (details.open && !loaded) {
+          loaded = true;
+          renderChapterBody(body, summary.querySelector('[data-role="meta"]'), activeSubject, idx);
+        }
+      });
+
+      panel.appendChild(details);
+    });
+  }
+
+  async function renderChapterBody(body, metaEl, subject, chapter) {
+    const path = folderPath(subject, chapter);
+    body.innerHTML = `<div class="sheet-list" data-role="list"><div class="sheet-empty">Loading…</div></div>`;
+    const list = body.querySelector('[data-role="list"]');
+
+    let sheets = [];
+    try {
+      sheets = await fetchFolder(path);
+    } catch (e) {
+      list.innerHTML = `<div class="sheet-empty">Couldn't reach GitHub right now — try again in a moment.</div>`;
+      return;
+    }
+
+    counts[subject + ":" + chapter] = sheets.length;
+    updateTabCounts();
+    metaEl.textContent = sheets.length > 0 ? (sheets.length + " sheet" + (sheets.length === 1 ? "" : "s")) : "empty";
+
+    const uploadUrl = `https://github.com/${OWNER}/${REPO}/upload/${BRANCH}/${path}`;
+
+    if (sheets.length === 0) {
+      list.innerHTML = `<div class="sheet-empty bn">এখনও কোনো লেকচার শীট নেই।</div>`;
+    } else {
+      list.innerHTML = "";
+      sheets.forEach(s => {
+        const row = document.createElement("a");
+        row.className = "sheet-row";
+        row.href = s.download_url;
+        row.target = "_blank";
+        row.rel = "noopener";
+        row.innerHTML = `
+          <span class="sheet-icon">PDF</span>
+          <span class="sheet-info">
+            <span class="sheet-name">${escapeHtml(s.name)}</span>
+            <span class="sheet-sub">${fmtSize(s.size)}</span>
+          </span>`;
+        list.appendChild(row);
+      });
+    }
+
+    const pathBox = document.createElement("div");
+    pathBox.className = "path-box";
+    pathBox.innerHTML = `
+      <div class="label">Drop PDFs for this chapter here:</div>
+      <div class="path-row">
+        <code>${path}/</code>
+        <button type="button" data-role="copy">Copy</button>
+      </div>
+      <a class="upload-link" href="${uploadUrl}" target="_blank" rel="noopener">Upload PDFs on GitHub</a>
+    `;
+    pathBox.querySelector('[data-role="copy"]').addEventListener("click", (e) => {
+      navigator.clipboard.writeText(path + "/");
+      e.target.textContent = "Copied";
+      setTimeout(() => { e.target.textContent = "Copy"; }, 1500);
+    });
+    body.appendChild(pathBox);
+  }
+
+  document.querySelectorAll(".subject-tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      activeSubject = tab.dataset.subject;
+      document.querySelectorAll(".subject-tab").forEach(t => t.setAttribute("aria-selected", t === tab ? "true" : "false"));
+      renderPanel();
+    });
+  });
+
+  renderPanel();
+})();
+</script>
+</body>
+</html>
